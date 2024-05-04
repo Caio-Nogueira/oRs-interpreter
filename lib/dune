@@ -1,0 +1,5 @@
+(library
+ (name oRun)
+ (public_name oRun)
+ (modules lexer token)
+ (preprocess (pps ppx_deriving.show)))

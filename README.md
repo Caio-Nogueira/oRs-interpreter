@@ -1,0 +1,3 @@
+This repository contains a basic implementation for an interpreter frontend. Still a work-in-progress. The goal is to complete at least the frontend part of the interpreter (i.e., lexer + parser)
+
+The implementation itself follows the steps described in the book [Writing an Interpreter in Go](https://interpreterbook.com/). However, some improvements were made, as the lexer is slightly more sophisticated.
