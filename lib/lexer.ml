@@ -100,6 +100,7 @@ let peek_string_literal lexer =
   advance lexer, token
   (* advance the lexer to the next char after the closing quote*)
 
+(* Returns the next lexer state and the current token *)
 let next_token lexer = 
   let open Token in
   let lexer' = skip_white_space lexer in
@@ -107,7 +108,7 @@ let next_token lexer =
   | None -> lexer', Some EOF
   | Some ch -> 
     match ch with
-      | '(' -> advance lexer', Some LeftParen 
+      | '(' -> advance lexer',Some LeftParen 
       | ')' -> advance lexer',Some RightParen
       | '{' -> advance lexer',Some LeftBrace
       | '}' -> advance lexer',Some RightBrace

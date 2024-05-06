@@ -5,7 +5,7 @@ let tokenize input =
   let rec tokenize' t acc = 
     match next_token t with
     | _, Some EOF -> List.rev acc
-    | t', token-> tokenize' t' (token::acc) 
+    | t', token -> tokenize' t' (token::acc) 
   in
   tokenize' lexer []
 
