@@ -1,9 +1,10 @@
-type node = 
+type node =
   | Program of program
   | Statement of statement
   | Expression of expression
+[@@deriving show]
 
-and expression = 
+and expression =
   | IntegerLit of int
   | Identifier of identifier
   | BooleanLit of boolean
@@ -17,72 +18,78 @@ and expression =
   | Index of arrayIndex
   | WhileLoop of whileLoop
 
+and program = { statements : statement list }
 
-and program = {
-  statements: statement list;
-}
-
-and statement = 
+and statement =
   | LetStmt of letStmt
   | ReturnStmt of returnStmt
   | ExpressionStmt of expression
 
-and letStmt = {
-  identifier: identifier;
-  expression: expression;
-}
+and letStmt =
+  { identifier : identifier
+  ; expression : expression
+  }
 
-and returnStmt = {
-  expression: expression;
-}
+and returnStmt = { expression : expression }
 
-and binaryOp = {
-  left: expression;
-  operator: Token.t;
-  right: expression;
-}
+and binaryOp =
+  { left : expression
+  ; operator : Token.t
+  ; right : expression
+  }
 
-and unaryOp = {
-  operator: Token.t;
-  right: expression;
-}
+and unaryOp =
+  { operator : Token.t
+  ; right : expression
+  }
 
-and ifCond = {
-  condition: expression;
-  consequence: expression;
-  alternative: expression;
-}
+and ifCond =
+  { condition : expression
+  ; consequence : expression
+  ; alternative : expression
+  }
 
-and arrayIndex = {
-  array: expression;
-  index: expression;
-}
+and arrayIndex =
+  { array : expression
+  ; index : expression
+  }
 
-and functionLit = {
-  parameters: identifier list;
-  body: block
-}
+and functionLit =
+  { parameters : identifier list
+  ; body : block
+  }
 
-and block = {
-  statements: statement list;
-}
+and block = { block_stmts : statement list }
 
-and functionCall = {
-  fn: identifier;
-  arguments: expression list;
-}
+and functionCall =
+  { fn : identifier
+  ; arguments : expression list
+  }
 
-and whileLoop = {
-  condition: expression;
-  body: block;
-}
+and whileLoop =
+  { condition : expression
+  ; body : block
+  }
 
-and identifier = {
-  identifier: string;
-}
-
-and boolean = {
-  boolean: bool;
-}
+and identifier = { identifier : string } [@@deriving show]
+and boolean = { boolean : bool }
 
 let new_identifier name = { identifier = name }
+
+let new_function_lit parameters block_stmts =
+  let block = { block_stmts } in
+  { parameters; body = block }
+;;
+
+let new_function_call fn arguments = { fn; arguments }
+let pp fmt node = Format.fprintf fmt "[%s]" (show_node node)
+
+let pp_program fmt program =
+  Format.fprintf
+    fmt
+    "Program { statements = [@[<hov>%a@]]@. }"
+    (Format.pp_print_list
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
+       pp_statement)
+    program.statements
+;;

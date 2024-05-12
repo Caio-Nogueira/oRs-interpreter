@@ -1,4 +1,7 @@
-(test
- (name lexer)
-  (libraries oRun stdio unix)
- )
+(library
+ (name test)
+  (libraries oRun base stdio unix)
+ (modules test_interpreter test_lexer test_parser)
+ (preprocess (pps ppx_inline_test ppx_expect))
+ (inline_tests))
+ 

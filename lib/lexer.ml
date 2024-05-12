@@ -133,6 +133,3 @@ let next_token lexer =
 
 let pp formatter lexer = 
   Format.fprintf formatter "%s\n" (show lexer)
-
-let pp_tokens tokens = 
-  List.iter (fun token -> Format.printf "%s\n" (Token.show token)) tokens

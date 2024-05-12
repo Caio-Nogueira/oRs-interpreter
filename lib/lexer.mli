@@ -14,5 +14,3 @@ val next_token : t -> t * Token.t option
 (** pretty print the*)
 val pp : Format.formatter -> t -> unit
 
-val pp_tokens : Token.t list -> unit
-
