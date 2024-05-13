@@ -15,7 +15,7 @@ and expression =
   | FunctionLit of functionLit
   | FunctionCall of functionCall
   | ArrayLit of expression list
-  | Index of arrayIndex
+  | ArrayIndex of arrayIndex
   | WhileLoop of whileLoop
 
 and program = { statements : statement list }
@@ -50,7 +50,7 @@ and ifCond =
   }
 
 and arrayIndex =
-  { array : expression
+  { name : identifier
   ; index : expression
   }
 
@@ -82,6 +82,7 @@ let new_function_lit parameters block_stmts =
 ;;
 
 let new_function_call fn arguments = { fn; arguments }
+let new_array_index name index = { name; index }
 let pp fmt node = Format.fprintf fmt "[%s]" (show_node node)
 
 let pp_program fmt program =

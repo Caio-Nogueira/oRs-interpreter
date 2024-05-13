@@ -102,4 +102,43 @@ let%expect_test "parser:functions" =
       |}]
 ;;
 
-(* TODO: function calls; array indexing in expressions; parenthesis in expressions *)
+let%expect_test "parser:function_calls" =
+  let input = "let x = add(1, 2);" in
+  let program = parse input in
+  match program with
+  | Error e -> print_endline e
+  | Ok prg ->
+    Ast.pp_program Format.std_formatter prg;
+    [%expect
+      {|     
+    Program { statements = [(Ast.LetStmt
+                               { Ast.identifier = { Ast.identifier = "x" };
+                                 expression = 
+                                 (Ast.FunctionCall
+                                    { Ast.fn = { Ast.identifier = "add" };
+                                      arguments = 
+                                      [(Ast.IntegerLit 1); (Ast.IntegerLit 2)] })
+                                 })]
+     } 
+      |}]
+;;
+
+let%expect_test "parser:array_indexing" =
+  let input = "let x = arr[1;];" in
+  let program = parse input in
+  match program with
+  | Error e -> print_endline e
+  | Ok prg ->
+    Ast.pp_program Format.std_formatter prg;
+    [%expect
+      {|     
+    Program { statements = [(Ast.LetStmt
+                               { Ast.identifier = { Ast.identifier = "x" };
+                                 expression = 
+                                 (Ast.ArrayIndex
+                                    { Ast.name = { Ast.identifier = "arr" };
+                                      index = (Ast.IntegerLit 1) })
+                                 })]
+     } 
+      |}]
+;;

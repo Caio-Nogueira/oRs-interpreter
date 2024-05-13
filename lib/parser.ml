@@ -170,6 +170,7 @@ and parse_function parser =
 
 and parse_function_call parser =
   let* name, parser = parse_identifier parser in
+  let* parser = expect_token parser Token.LeftParen in
   let rec parse_args parser acc =
     match parser.current_token with
     | Some Token.RightParen ->
@@ -186,9 +187,32 @@ and parse_function_call parser =
     ( Ast.FunctionCall (Ast.new_function_call name args)
     , parser )
 
+and parse_array_index parser =
+  let* name, parser = parse_identifier parser in
+  let* parser =
+    expect_token parser Token.LeftSquareBracket
+  in
+  let* index, parser = parse_expression parser LOWEST in
+  (*NOTE: parse_expression is designed to chop off a possible semicolon
+    this makes array indexing operations like arr[i-1;] possible
+    Not allowing this semicolon would require an implementation of parse_expression for this operations *)
+  let* parser =
+    expect_token parser Token.RightSquareBracket
+  in
+  Base.Ok
+    (Ast.ArrayIndex (Ast.new_array_index name index), parser)
+
+and peek_after_identifier parser id =
+  match parser.peek_token with
+  | Some Token.LeftParen -> parse_function_call parser
+  | Some Token.LeftSquareBracket -> parse_array_index parser
+  | _ ->
+    Base.Ok
+      (Ast.Identifier { identifier = id }, advance parser)
+
 and parse_expression parser precedence =
   let* left, parser = parse_prefix_expr parser in
-  (* We can derail from the book here -> parse_prefix_expr already advances the parser, so we can just check the current token *)
+  (* We can derail from the interpreter book here -> parse_prefix_expr already advances the parser, so we can just check the current token *)
   match parser.current_token with
   | Some Token.Semicolon ->
     Base.Ok (left, advance parser)
@@ -200,12 +224,7 @@ and parse_expression parser precedence =
 
 and parse_prefix_expr parser =
   match parser.current_token with
-  | Some (Identifier id) ->
-    if parser.peek_token == Some Token.LeftParen
-    then parse_function_call parser
-    else
-      Base.Ok
-        (Ast.Identifier { identifier = id }, advance parser)
+  | Some (Identifier id) -> peek_after_identifier parser id
   | Some (Token.IntegerLit i) ->
     Base.Ok
       (Ast.IntegerLit (Base.Int.of_string i), advance parser)
@@ -254,10 +273,9 @@ let parse parser =
 ;;
 
 (*
-   TODO: create unit tests for each parser production
-   TODO: if, while statements
-   TODO: function literals / function calls (expressions)
+   TODO: create unit tests for each parser production (WIP)
    TODO: array indexing (expressions)
    TODO: expressions with parentheses (precedence)
-   TODO: create custom parse_error type to provide insights regarding possible errors (e.g., token,)
+   TODO: if, while statements
+   TODO: create custom parse_error type to provide diagnostics regarding possible errors (e.g., token,)
 *)

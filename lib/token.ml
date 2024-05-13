@@ -25,6 +25,8 @@ type t =
   | RightParen
   | LeftBrace
   | RightBrace
+  | LeftSquareBracket
+  | RightSquareBracket
   | Quote
   (* Keywords *)
   | If
