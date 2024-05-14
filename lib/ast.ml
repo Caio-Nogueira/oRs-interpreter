@@ -1,3 +1,4 @@
+(* open Base in *)
 type node =
   | Program of program
   | Statement of statement
@@ -11,12 +12,14 @@ and expression =
   | StringLit of string
   | UnaryOp of unaryOp
   | BinaryOp of binaryOp
-  | If of ifCond
+  | IfCond of ifCond
   | FunctionLit of functionLit
   | FunctionCall of functionCall
   | ArrayLit of expression list
   | ArrayIndex of arrayIndex
   | WhileLoop of whileLoop
+  | BlockExpr of block
+(* Allow to group several expressions. NOTE: Evaluation must assure that the last expression resolves into something valid*)
 
 and program = { statements : statement list }
 
@@ -46,7 +49,8 @@ and unaryOp =
 and ifCond =
   { condition : expression
   ; consequence : expression
-  ; alternative : expression
+  ; alternative : expression option
+  (* None if else statement does not exist *)
   }
 
 and arrayIndex =
@@ -56,7 +60,7 @@ and arrayIndex =
 
 and functionLit =
   { parameters : identifier list
-  ; body : block
+  ; body : expression
   }
 
 and block = { block_stmts : statement list }
@@ -76,8 +80,7 @@ and boolean = { boolean : bool }
 
 let new_identifier name = { identifier = name }
 
-let new_function_lit parameters block_stmts =
-  let block = { block_stmts } in
+let new_function_lit parameters block =
   { parameters; body = block }
 ;;
 

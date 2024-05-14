@@ -48,6 +48,27 @@ let%expect_test "parser:composed_expr" =
      } |}]
 ;;
 
+let%expect_test "parser:grouped_expr" =
+  let input = "(1 + 2) * 3;" in
+  let program = parse input in
+  match program with
+  | Error e -> print_endline e
+  | Ok prg ->
+    Ast.pp_program Format.std_formatter prg;
+    [%expect
+      {|     
+    Program { statements = [(Ast.ExpressionStmt
+                               (Ast.BinaryOp
+                                  { Ast.left = 
+                                    (Ast.BinaryOp
+                                       { Ast.left = (Ast.IntegerLit 1);
+                                         operator = (Plus);
+                                         right = (Ast.IntegerLit 2) });
+                                    operator = (Astherisk);
+                                    right = (Ast.IntegerLit 3) }))]
+     } |}]
+;;
+
 let%expect_test "parser:variables" =
   let input = "let x = 1; let y = 2;" in
   let program = parse input in
@@ -83,22 +104,23 @@ let%expect_test "parser:functions" =
                                       [{ Ast.identifier = "x" };
                                         { Ast.identifier = "y" }];
                                       body =
-                                      { Ast.block_stmts =
-                                        [(Ast.ExpressionStmt
-                                            (Ast.BinaryOp
-                                               { Ast.left =
-                                                 (Ast.Identifier
-                                                    { Ast.identifier = "x" });
-                                                 operator = (Plus);
-                                                 right =
-                                                 (Ast.Identifier
-                                                    { Ast.identifier = "y" })
-                                                 }))
-                                          ]
-                                        }
+                                      (Ast.BlockExpr
+                                         { Ast.block_stmts =
+                                           [(Ast.ExpressionStmt
+                                               (Ast.BinaryOp
+                                                  { Ast.left = 
+                                                    (Ast.Identifier 
+                                                       { Ast.identifier = "x" });
+                                                    operator = (Plus);
+                                                    right =
+                                                    (Ast.Identifier 
+                                                       { Ast.identifier = "y" })
+                                                    }))
+                                             ] 
+                                           })
                                       })
                                  })]
-     } 
+     }
       |}]
 ;;
 
@@ -124,7 +146,8 @@ let%expect_test "parser:function_calls" =
 ;;
 
 let%expect_test "parser:array_indexing" =
-  let input = "let x = arr[1;];" in
+  let input = "let x = arr[1];" in
+  (*NOTE  arr[1;] would also make this test pass - see parser.ml ...*)
   let program = parse input in
   match program with
   | Error e -> print_endline e
@@ -141,4 +164,51 @@ let%expect_test "parser:array_indexing" =
                                  })]
      } 
       |}]
+;;
+
+let%expect_test "parser:expr_stmts" =
+  let input =
+    "let main = fn() { if (y > 1) { return 0 } }"
+  in
+  let program = parse input in
+  match program with
+  | Error e -> print_endline e
+  | Ok prg ->
+    Ast.pp_program Format.std_formatter prg;
+    [%expect
+      {|     
+    Program { statements = [(Ast.LetStmt
+                               { Ast.identifier = { Ast.identifier = "main" };
+                                 expression =
+                                 (Ast.FunctionLit
+                                    { Ast.parameters = [];
+                                      body =
+                                      (Ast.BlockExpr
+                                         { Ast.block_stmts =
+                                           [(Ast.ExpressionStmt
+                                               (Ast.IfCond
+                                                  { Ast.condition =
+                                                    (Ast.BinaryOp
+                                                       { Ast.left =
+                                                         (Ast.Identifier
+                                                            { Ast.identifier =
+                                                              "y" });
+                                                         operator = (GreaterThan);
+                                                         right =
+                                                         (Ast.IntegerLit 1) });
+                                                    consequence =
+                                                    (Ast.BlockExpr
+                                                       { Ast.block_stmts =
+                                                         [(Ast.ReturnStmt
+                                                             { Ast.expression =
+                                                               (Ast.IntegerLit 0)
+                                                               })
+                                                           ]
+                                                         });
+                                                    alternative = None }))
+                                             ]
+                                           })
+                                      })
+                                 })]
+     }|}]
 ;;

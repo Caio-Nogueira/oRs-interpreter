@@ -1,3 +1,13 @@
 fn helloWorld() {
     println("Hello, world");
 }
+
+
+// CONDITIONS
+// conditions are expressions in this language -> this assignment works
+let x = if (y < 1) {
+	let aux = 0;
+	aux + 1;
+	} else { y - 1; }
+
+//`x` resolves to the result of the last expression inside the `consequence`, or `alternative`

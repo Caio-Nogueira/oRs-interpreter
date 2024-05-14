@@ -134,7 +134,6 @@ and parse_identifier parser =
   | _ -> Base.Error "expected identifier"
 
 and parse_block parser =
-  (* NOTE: parse_block should be independent -> in the future, blocks can aggregate groups of statements*)
   let* parser = expect_token parser Token.LeftBrace in
   let rec parse_block' parser acc =
     match parser.current_token with
@@ -147,7 +146,8 @@ and parse_block parser =
          parse_block' parser (stmt :: acc)
        | Base.Error err -> Base.Error err)
   in
-  parse_block' parser []
+  let* parser, block = parse_block' parser [] in
+  Base.Ok (parser, Ast.BlockExpr { block_stmts = block })
 
 and parse_function parser =
   let* parser = expect_token parser Token.LeftParen in
@@ -195,7 +195,8 @@ and parse_array_index parser =
   let* index, parser = parse_expression parser LOWEST in
   (*NOTE: parse_expression is designed to chop off a possible semicolon
     this makes array indexing operations like arr[i-1;] possible
-    Not allowing this semicolon would require an implementation of parse_expression for this operations *)
+    Not allowing this semicolon would require an implementation of parse_expression for this operations.
+    Let's just not bloat the parser for now :) *)
   let* parser =
     expect_token parser Token.RightSquareBracket
   in
@@ -210,6 +211,13 @@ and peek_after_identifier parser id =
     Base.Ok
       (Ast.Identifier { identifier = id }, advance parser)
 
+and parse_grouped_expression parser =
+  let* expression, parser =
+    parse_expression parser LOWEST
+  in
+  let* parser = expect_token parser Token.RightParen in
+  Base.Ok (expression, parser)
+
 and parse_expression parser precedence =
   let* left, parser = parse_prefix_expr parser in
   (* We can derail from the interpreter book here -> parse_prefix_expr already advances the parser, so we can just check the current token *)
@@ -222,6 +230,24 @@ and parse_expression parser precedence =
     then parse_infix_expr parser left
     else Base.Ok (left, parser)
 
+and parse_if_expr parser =
+  let* parser = expect_token parser Token.LeftParen in
+  let* condition, parser = parse_expression parser LOWEST in
+  let* parser = expect_token parser Token.RightParen in
+  let* parser, consequence = parse_block parser in
+  let* alternative, parser =
+    match parser.current_token with
+    | Some Token.Else ->
+      let* parser, alternative =
+        parse_block (advance parser)
+      in
+      Base.Ok (Some alternative, parser)
+    | _ -> Base.Ok (None, parser)
+  in
+  Base.Ok
+    ( Ast.IfCond { condition; consequence; alternative }
+    , parser )
+
 and parse_prefix_expr parser =
   match parser.current_token with
   | Some (Identifier id) -> peek_after_identifier parser id
@@ -229,6 +255,9 @@ and parse_prefix_expr parser =
     Base.Ok
       (Ast.IntegerLit (Base.Int.of_string i), advance parser)
   | Some Token.Function -> parse_function (advance parser)
+  | Some Token.LeftParen ->
+    parse_grouped_expression (advance parser)
+  | Some Token.If -> parse_if_expr (advance parser)
   | Some Token.Bang | Some Token.Minus ->
     let* right, parser =
       parse_expression (advance parser) PREFIX
@@ -274,8 +303,8 @@ let parse parser =
 
 (*
    TODO: create unit tests for each parser production (WIP)
-   TODO: array indexing (expressions)
-   TODO: expressions with parentheses (precedence)
+   TODO: test return statements
    TODO: if, while statements
+   TODO: negative numbers
    TODO: create custom parse_error type to provide diagnostics regarding possible errors (e.g., token,)
 *)
