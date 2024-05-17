@@ -248,6 +248,13 @@ and parse_if_expr parser =
     ( Ast.IfCond { condition; consequence; alternative }
     , parser )
 
+and parse_while parser =
+  let* parser = expect_token parser Token.LeftParen in
+  let* condition, parser = parse_expression parser LOWEST in
+  let* parser = expect_token parser Token.RightParen in
+  let* parser, block = parse_block parser in
+  Base.Ok (Ast.WhileLoop { condition; body = block }, parser)
+
 and parse_prefix_expr parser =
   match parser.current_token with
   | Some (Identifier id) -> peek_after_identifier parser id
@@ -258,6 +265,7 @@ and parse_prefix_expr parser =
   | Some Token.LeftParen ->
     parse_grouped_expression (advance parser)
   | Some Token.If -> parse_if_expr (advance parser)
+  | Some Token.While -> parse_while (advance parser)
   | Some Token.Bang | Some Token.Minus ->
     let* right, parser =
       parse_expression (advance parser) PREFIX
@@ -303,8 +311,7 @@ let parse parser =
 
 (*
    TODO: create unit tests for each parser production (WIP)
-   TODO: test return statements
-   TODO: if, while statements
+   TODO: while statements
    TODO: negative numbers
    TODO: create custom parse_error type to provide diagnostics regarding possible errors (e.g., token,)
 *)

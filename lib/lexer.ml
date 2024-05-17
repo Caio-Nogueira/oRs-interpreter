@@ -141,8 +141,26 @@ let peek_string_literal lexer =
   advance lexer, token
 ;;
 
-(* advance the lexer to the next char after the closing quote*)
+(* peek_integer_literal parses negative integers *)
+(* checks if next position is a digit *)
+(* if it is, then it's a negative number, so we need to prepend a minus sign to the accumulator*)
+(* if not, return the minus operation token and advance the lexer to the next valid position*)
+let peek_integer_literal lexer =
+  let rec peek_integer_literal' lexer acc =
+    match lexer.ch with
+    | Some ch when is_digit ch ->
+      peek_integer_literal'
+        (next_position lexer)
+        (acc ^ String.make 1 ch)
+    | _ -> lexer, Some (IntegerLit ("-" ^ acc))
+  in
+  match lexer.ch with
+  | Some ch when is_digit ch ->
+    peek_integer_literal' lexer ""
+  | _ -> advance lexer, Some Minus
+;;
 
+(* advance the lexer to the next char after the closing quote*)
 (* Returns the next lexer state and the current token *)
 let next_token lexer =
   let open Token in
@@ -158,7 +176,6 @@ let next_token lexer =
      | '[' -> advance lexer', Some LeftSquareBracket
      | ']' -> advance lexer', Some RightSquareBracket
      | '+' -> advance lexer', Some Plus
-     | '-' -> advance lexer', Some Minus
      | '*' -> advance lexer', Some Astherisk
      | '/' -> advance lexer', Some Slash
      | ',' -> advance lexer', Some Comma
@@ -166,6 +183,7 @@ let next_token lexer =
      | '<' -> advance lexer', Some LessThan
      | ';' -> advance lexer', Some Semicolon
      | '"' -> peek_string_literal (next_position lexer')
+     | '-' -> peek_integer_literal (next_position lexer')
      | '=' ->
        peek lexer' '=' ~whenMatched:Equal ~default:Assign
      | '!' ->

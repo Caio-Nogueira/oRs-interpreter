@@ -72,7 +72,7 @@ and functionCall =
 
 and whileLoop =
   { condition : expression
-  ; body : block
+  ; body : expression
   }
 
 and identifier = { identifier : string } [@@deriving show]

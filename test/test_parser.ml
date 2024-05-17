@@ -212,3 +212,50 @@ let%expect_test "parser:expr_stmts" =
                                  })]
      }|}]
 ;;
+
+let%expect_test "parser:while_stmt" =
+  let input =
+    "let main = fn() { while (y > 1) { return -1 } }"
+  in
+  let program = parse input in
+  match program with
+  | Error e -> print_endline e
+  | Ok prg ->
+    Ast.pp_program Format.std_formatter prg;
+    [%expect
+      {|     
+    Program { statements = [(Ast.LetStmt
+                               { Ast.identifier = { Ast.identifier = "main" };
+                                 expression =
+                                 (Ast.FunctionLit
+                                    { Ast.parameters = [];
+                                      body =
+                                      (Ast.BlockExpr
+                                         { Ast.block_stmts =
+                                           [(Ast.ExpressionStmt
+                                               (Ast.WhileLoop
+                                                  { Ast.condition =
+                                                    (Ast.BinaryOp
+                                                       { Ast.left =
+                                                         (Ast.Identifier
+                                                            { Ast.identifier =
+                                                              "y" });
+                                                         operator = (GreaterThan);
+                                                         right =
+                                                         (Ast.IntegerLit 1) });
+                                                    body =
+                                                    (Ast.BlockExpr
+                                                       { Ast.block_stmts =
+                                                         [(Ast.ReturnStmt
+                                                             { Ast.expression =
+                                                               (Ast.IntegerLit -1)
+                                                               })
+                                                           ]
+                                                         })
+                                                    }))
+                                             ]
+                                           })
+                                      })
+                                 })]
+     }|}]
+;;
