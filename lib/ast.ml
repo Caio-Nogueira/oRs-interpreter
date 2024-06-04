@@ -1,4 +1,3 @@
-(* open Base in *)
 type node =
   | Program of program
   | Statement of statement

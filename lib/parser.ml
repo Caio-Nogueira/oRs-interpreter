@@ -311,7 +311,5 @@ let parse parser =
 
 (*
    TODO: create unit tests for each parser production (WIP)
-   TODO: while statements
-   TODO: negative numbers
-   TODO: create custom parse_error type to provide diagnostics regarding possible errors (e.g., token,)
+   TODO: provide insights when catching errors (e.g., expected token, unexpected token, etc.)
 *)
