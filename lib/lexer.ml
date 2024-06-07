@@ -109,6 +109,7 @@ let peek_identifier lexer =
   | lexer', "continue" -> lexer', Some Continue
   | lexer', "int" -> lexer', Some Int
   | lexer', "bool" -> lexer', Some Bool
+  | lexer', "string" -> lexer', Some Null
   | lexer', ident -> lexer', Some (Identifier ident)
 ;;
 

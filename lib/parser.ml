@@ -261,6 +261,11 @@ and parse_prefix_expr parser =
   | Some (Token.IntegerLit i) ->
     Base.Ok
       (Ast.IntegerLit (Base.Int.of_string i), advance parser)
+  | Some Token.True ->
+    Base.Ok (Ast.BooleanLit true, advance parser)
+  | Some Token.False ->
+    Base.Ok (Ast.BooleanLit false, advance parser)
+  | Some Token.Null -> Base.Ok (Ast.NullLit, advance parser)
   | Some Token.Function -> parse_function (advance parser)
   | Some Token.LeftParen ->
     parse_grouped_expression (advance parser)
@@ -308,8 +313,3 @@ let parse parser =
   in
   parse' parser []
 ;;
-
-(*
-   TODO: create unit tests for each parser production (WIP)
-   TODO: provide insights when catching errors (e.g., expected token, unexpected token, etc.)
-*)

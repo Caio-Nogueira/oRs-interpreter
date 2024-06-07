@@ -42,6 +42,7 @@ type t =
   | Continue
   | Function
   | Let
+  | Null
 [@@deriving show { with_path = false }]
 
 let ( == ) (token1 : t) (token2 : t) : bool =

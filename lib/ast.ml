@@ -1,13 +1,9 @@
-type node =
-  | Program of program
-  | Statement of statement
-  | Expression of expression
-[@@deriving show]
+type node = Program of program [@@deriving show]
 
 and expression =
   | IntegerLit of int
   | Identifier of identifier
-  | BooleanLit of boolean
+  | BooleanLit of bool
   | StringLit of string
   | UnaryOp of unaryOp
   | BinaryOp of binaryOp
@@ -18,8 +14,10 @@ and expression =
   | ArrayIndex of arrayIndex
   | WhileLoop of whileLoop
   | BlockExpr of block
-(* Allow to group several expressions. NOTE: Evaluation must assure that the last expression resolves into something valid*)
+  | NullLit
 
+(* Null type for expressions that do not return anything *)
+(* Allow to group several expressions. NOTE: Evaluation must assure that the last expression resolves into something valid*)
 and program = { statements : statement list }
 
 and statement =
@@ -75,7 +73,6 @@ and whileLoop =
   }
 
 and identifier = { identifier : string } [@@deriving show]
-and boolean = { boolean : bool }
 
 let new_identifier name = { identifier = name }
 
@@ -96,3 +93,21 @@ let pp_program fmt program =
        pp_statement)
     program.statements
 ;;
+
+(* Traverser for the AST. Works like some kind of iterator *)
+type traverser =
+  { curr_stmt : statement option
+  ; stmts : statement list
+  }
+
+let init_traverser program =
+  { curr_stmt = None; stmts = program.statements }
+;;
+
+let advance_traverser traverser =
+  match traverser.stmts with
+  | [] -> None
+  | stmt :: stmts -> Some { curr_stmt = Some stmt; stmts }
+;;
+
+let get_curr_stmt traverser = traverser.curr_stmt
