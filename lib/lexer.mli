@@ -1,6 +1,5 @@
-(** This interface file defines the visible types and methods required to tokenize 
-   Lexer receives a string and returns a list of tokens 
-*)
+(** This interface file defines the visible types and methods required to tokenize
+    Lexer receives a string and returns a list of tokens *)
 
 (** t is the lexer type *)
 type t
@@ -14,3 +13,4 @@ val next_token : t -> t * Token.t option
 (** pretty print the*)
 val pp : Format.formatter -> t -> unit
 
+(** Returns the current line number: TODO *)

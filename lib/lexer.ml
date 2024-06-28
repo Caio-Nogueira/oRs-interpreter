@@ -142,25 +142,6 @@ let peek_string_literal lexer =
   advance lexer, token
 ;;
 
-(* peek_integer_literal parses negative integers *)
-(* checks if next position is a digit *)
-(* if it is, then it's a negative number, so we need to prepend a minus sign to the accumulator*)
-(* if not, return the minus operation token and advance the lexer to the next valid position*)
-let peek_integer_literal lexer =
-  let rec peek_integer_literal' lexer acc =
-    match lexer.ch with
-    | Some ch when is_digit ch ->
-      peek_integer_literal'
-        (next_position lexer)
-        (acc ^ String.make 1 ch)
-    | _ -> lexer, Some (IntegerLit ("-" ^ acc))
-  in
-  match lexer.ch with
-  | Some ch when is_digit ch ->
-    peek_integer_literal' lexer ""
-  | _ -> advance lexer, Some Minus
-;;
-
 (* advance the lexer to the next char after the closing quote*)
 (* Returns the next lexer state and the current token *)
 let next_token lexer =
@@ -183,8 +164,8 @@ let next_token lexer =
      | '>' -> advance lexer', Some GreaterThan
      | '<' -> advance lexer', Some LessThan
      | ';' -> advance lexer', Some Semicolon
+     | '-' -> advance lexer', Some Minus
      | '"' -> peek_string_literal (next_position lexer')
-     | '-' -> peek_integer_literal (next_position lexer')
      | '=' ->
        peek lexer' '=' ~whenMatched:Equal ~default:Assign
      | '!' ->
@@ -198,7 +179,3 @@ let next_token lexer =
 ;;
 
 (* not all token.t variants are tokenized. That's ok for this first version *)
-
-let pp formatter lexer =
-  Format.fprintf formatter "%s\n" (show lexer)
-;;

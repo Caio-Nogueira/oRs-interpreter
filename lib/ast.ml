@@ -15,50 +15,62 @@ and expression =
   | WhileLoop of whileLoop
   | BlockExpr of block
   | NullLit
+[@@deriving show { with_path = false }]
+
+(* Program is the root node of the AST *)
+(* It contains a list of statements *)
 
 (* Null type for expressions that do not return anything *)
 (* Allow to group several expressions. NOTE: Evaluation must assure that the last expression resolves into something valid*)
 and program = { statements : statement list }
+[@@deriving show { with_path = false }]
 
 and statement =
   | LetStmt of letStmt
   | ReturnStmt of returnStmt
   | ExpressionStmt of expression
+[@@deriving show { with_path = false }]
 
 and letStmt =
   { identifier : identifier
   ; expression : expression
   }
+[@@deriving show { with_path = false }]
 
 and returnStmt = { expression : expression }
+[@@deriving show { with_path = false }]
 
 and binaryOp =
   { left : expression
   ; operator : Token.t
   ; right : expression
   }
+[@@deriving show { with_path = false }]
 
 and unaryOp =
   { operator : Token.t
   ; right : expression
   }
+[@@deriving show { with_path = false }]
 
 and ifCond =
   { condition : expression
   ; consequence : expression
   ; alternative : expression option
-  (* None if else statement does not exist *)
   }
+[@@deriving show { with_path = false }]
 
 and arrayIndex =
   { name : identifier
   ; index : expression
   }
+[@@deriving show { with_path = false }]
 
 and functionLit =
   { parameters : identifier list
   ; body : expression
   }
+[@@deriving show { with_path = false }]
 
 and block = { block_stmts : statement list }
 
@@ -66,13 +78,16 @@ and functionCall =
   { fn : identifier
   ; arguments : expression list
   }
+[@@deriving show { with_path = false }]
 
 and whileLoop =
   { condition : expression
   ; body : expression
   }
+[@@deriving show { with_path = false }]
 
-and identifier = { identifier : string } [@@deriving show]
+and identifier = { identifier : string }
+[@@deriving show { with_path = false }]
 
 let new_identifier name = { identifier = name }
 

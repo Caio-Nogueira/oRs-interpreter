@@ -26,6 +26,44 @@ let%expect_test "parser:trivialexpr" =
      } |}]
 ;;
 
+let%expect_test "parser:trivialexpr2" =
+  let input = "1-2" in
+  let program = parse input in
+  match program with
+  | Error e -> print_endline e
+  | Ok prg ->
+    Ast.pp_program Format.std_formatter prg;
+    [%expect
+      {|     
+    Program { statements = [(Ast.ExpressionStmt
+                               (Ast.BinaryOp
+                                  { Ast.left = (Ast.IntegerLit 1);
+                                    operator = (Minus);
+                                    right = (Ast.IntegerLit 2) }))]
+     } |}]
+;;
+
+let%expect_test "parser:trivialexpr3" =
+  let input = "10*2-5" in
+  let program = parse input in
+  match program with
+  | Error e -> print_endline e
+  | Ok prg ->
+    Ast.pp_program Format.std_formatter prg;
+    [%expect
+      {|    
+    Program { statements = [(Ast.ExpressionStmt
+                               (Ast.BinaryOp
+                                  { Ast.left = 
+                                    (Ast.BinaryOp
+                                       { Ast.left = (Ast.IntegerLit 10);
+                                         operator = (Astherisk);
+                                         right = (Ast.IntegerLit 2) });
+                                    operator = (Minus);
+                                    right = (Ast.IntegerLit 5) }))]
+    |}]
+;;
+
 let%expect_test "parser:composed_expr" =
   let input = "1 + 2 * 3;" in
   let program = parse input in
@@ -248,7 +286,13 @@ let%expect_test "parser:while_stmt" =
                                                        { Ast.block_stmts =
                                                          [(Ast.ReturnStmt
                                                              { Ast.expression =
-                                                               (Ast.IntegerLit -1)
+                                                               (Ast.UnaryOp
+                                                                  { Ast.operator =
+                                                                    (Minus);
+                                                                    right =
+                                                                    (Ast.IntegerLit
+                                                                       1)
+                                                                    })
                                                                })
                                                            ]
                                                          })

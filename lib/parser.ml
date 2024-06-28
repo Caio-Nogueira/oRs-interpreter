@@ -20,7 +20,6 @@ type precedence =
   | PRODUCT
   | PREFIX
   | CALL
-  | EOF
 [@@deriving show, ord]
 
 let ( <. ) p1 p2 = Stdlib.compare p1 p2 < 0
@@ -72,21 +71,8 @@ let expect_token parser token =
   | None -> Base.Error "no current token"
 ;;
 
-let cur_precedence parser =
-  match parser.current_token with
-  | Some Token.Equal -> EQUALS
-  | Some Token.NotEqual -> EQUALS
-  | Some Token.LessThan -> LESSGREATER
-  | Some Token.GreaterThan -> LESSGREATER
-  | Some Token.Plus -> SUM
-  | Some Token.Minus -> SUM
-  | Some Token.Slash -> PRODUCT
-  | Some Token.Astherisk -> PRODUCT
-  | _ -> LOWEST
-;;
-
-let peek_precedence parser =
-  match parser.peek_token with
+let token_precedence token =
+  match token with
   | Some Token.Equal -> EQUALS
   | Some Token.NotEqual -> EQUALS
   | Some Token.LessThan -> LESSGREATER
@@ -221,14 +207,24 @@ and parse_grouped_expression parser =
 and parse_expression parser precedence =
   let* left, parser = parse_prefix_expr parser in
   (* We can derail from the interpreter book here -> parse_prefix_expr already advances the parser, so we can just check the current token *)
-  match parser.current_token with
-  | Some Token.Semicolon ->
-    Base.Ok (left, advance parser)
-    (* advance to chomp semicolon *)
-  | _ ->
-    if precedence <. cur_precedence parser
-    then parse_infix_expr parser left
-    else Base.Ok (left, parser)
+  (* NOTE: no, we can't -> FIX THIS... *)
+  let rec parse_expression' parser left =
+    match parser.current_token with
+    | Some Token.Semicolon -> Base.Ok (left, advance parser)
+    | Some Token.EOF -> Base.Ok (left, parser)
+    | t when precedence <. token_precedence t ->
+      let* left, parser = parse_infix_expr parser left in
+      parse_expression' parser left
+    | Some _ -> Base.Ok (left, parser)
+    | None -> Base.Error "no current token"
+  in
+  parse_expression' parser left
+(* match parser.current_token with *)
+(* | Some Token.Semicolon -> *)
+(*   Base.Ok (left, advance parser) *)
+(*   (* advance to chomp semicolon *) *)
+(* | _ -> *)
+(*   if precedence <. token_precedence parser.current_token *)
 
 and parse_if_expr parser =
   let* parser = expect_token parser Token.LeftParen in
@@ -272,26 +268,28 @@ and parse_prefix_expr parser =
   | Some Token.If -> parse_if_expr (advance parser)
   | Some Token.While -> parse_while (advance parser)
   | Some Token.Bang | Some Token.Minus ->
+    let operator = parser.current_token in
+    let* operator =
+      opt_to_res operator "expected operator"
+    in
     let* right, parser =
       parse_expression (advance parser) PREFIX
     in
-    let* operator =
-      opt_to_res parser.current_token "expected operator"
-    in
-    Base.Ok (Ast.UnaryOp { operator; right }, advance parser)
+    Base.Ok (Ast.UnaryOp { operator; right }, parser)
   | Some t ->
     Base.Error
       (Format.sprintf "unexpected token: %s" (Token.show t))
   | None -> Base.Error "no current token"
 
 and parse_infix_expr parser left =
+  (* Printf.printf "left expr: %s\n" (Ast.show_expression left); *)
+  let* operator =
+    opt_to_res parser.current_token "expected operator"
+  in
   let* right, parser' =
     parse_expression
       (advance parser)
-      (cur_precedence parser)
-  in
-  let* operator =
-    opt_to_res parser.current_token "expected operator"
+      (token_precedence parser.current_token)
   in
   Base.Ok (Ast.BinaryOp { left; operator; right }, parser')
 ;;

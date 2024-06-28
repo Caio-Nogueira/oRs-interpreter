@@ -50,3 +50,9 @@ let ( == ) (token1 : t) (token2 : t) : bool =
 ;;
 
 let pp fmt token = Format.fprintf fmt "(%s)" (show token)
+
+let pp_token fmt token =
+  match token with
+  | Some t -> pp fmt t
+  | None -> Format.fprintf fmt "None"
+;;
