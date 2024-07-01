@@ -28,6 +28,8 @@ and eval_expr expr =
     Base.Ok
       (Object.Value.Error
          ("Invalid expression " ^ Ast.show_expression expr))
+(* NOTE: For now, printing the ast of the expression should be fine -> it would be better to provide insights in
+   a more compactful way*)
 
 and eval_prefix_expr operator expr =
   match operator with
@@ -117,4 +119,6 @@ and eval program =
 (*
    TODO:
    - Think of a way to keep track of the current scope -> variable assignments
+     I guess the book's approach is fine for now, but it would be nice to have a more
+     functional approach to it
 *)

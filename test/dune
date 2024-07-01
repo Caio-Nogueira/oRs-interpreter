@@ -1,7 +1,14 @@
 (library
  (name test)
-  (libraries oRun base stdio unix)
+ (libraries oRun base stdio unix ounit2)
  (modules test_interpreter test_lexer test_parser)
- (preprocess (pps ppx_inline_test ppx_expect))
+ (preprocess
+  (pps ppx_inline_test ppx_expect ppx_assert))
  (inline_tests))
- 
+
+(test
+ (name test_eval)
+ (libraries test oRun base stdio unix ounit2)
+ (modules test_eval)
+ (preprocess
+  (pps ppx_inline_test ppx_expect ppx_assert)))

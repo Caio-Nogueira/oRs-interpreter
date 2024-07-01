@@ -98,6 +98,7 @@ let new_function_lit parameters block =
 let new_function_call fn arguments = { fn; arguments }
 let new_array_index name index = { name; index }
 let pp fmt node = Format.fprintf fmt "[%s]" (show_node node)
+let new_program statements = { statements }
 
 let pp_program fmt program =
   Format.fprintf

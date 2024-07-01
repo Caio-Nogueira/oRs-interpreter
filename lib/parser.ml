@@ -207,7 +207,6 @@ and parse_grouped_expression parser =
 and parse_expression parser precedence =
   let* left, parser = parse_prefix_expr parser in
   (* We can derail from the interpreter book here -> parse_prefix_expr already advances the parser, so we can just check the current token *)
-  (* NOTE: no, we can't -> FIX THIS... *)
   let rec parse_expression' parser left =
     match parser.current_token with
     | Some Token.Semicolon -> Base.Ok (left, advance parser)
@@ -219,12 +218,6 @@ and parse_expression parser precedence =
     | None -> Base.Error "no current token"
   in
   parse_expression' parser left
-(* match parser.current_token with *)
-(* | Some Token.Semicolon -> *)
-(*   Base.Ok (left, advance parser) *)
-(*   (* advance to chomp semicolon *) *)
-(* | _ -> *)
-(*   if precedence <. token_precedence parser.current_token *)
 
 and parse_if_expr parser =
   let* parser = expect_token parser Token.LeftParen in
