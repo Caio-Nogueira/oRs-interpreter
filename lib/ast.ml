@@ -91,6 +91,14 @@ and identifier = { identifier : string }
 
 let new_identifier name = { identifier = name }
 
+let identifier_to_string (id : identifier) : string =
+  id.identifier
+;;
+
+let new_let_stmt identifier expression =
+  { identifier; expression }
+;;
+
 let new_function_lit parameters block =
   { parameters; body = block }
 ;;
@@ -115,6 +123,7 @@ type traverser =
   { curr_stmt : statement option
   ; stmts : statement list
   }
+[@@deriving show]
 
 let init_traverser program =
   { curr_stmt = None; stmts = program.statements }

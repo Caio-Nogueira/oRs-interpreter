@@ -2,6 +2,6 @@
  (name oRun)
  (public_name oRun)
  (libraries base core)
- (modules lexer token ast parser object eval)
+ (modules lexer token ast parser object eval env)
  (preprocess
   (pps ppx_deriving.show ppx_deriving.ord ppx_deriving.eq ppx_sexp_conv)))
